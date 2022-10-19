@@ -1,4 +1,3 @@
-const bodyParser = require("body-parser");
 const { Thought, User } = require("../models");
 
 module.exports = {
@@ -11,8 +10,8 @@ module.exports = {
         return res.status(400).json(err);
       });
   },
-  getSingleThought(req, res) {
-    Thought.findOne({ _id: req.thoughtId })
+  getSingleThought({ params }, res) {
+    Thought.findOne({ _id: params.thoughtId })
       .select("-__v")
       .then((thought) => {
         if (!thought) {
@@ -25,15 +24,15 @@ module.exports = {
         return res.status(400).json(err);
       });
   },
-  createThought(req, res) {
+  createThought({ params, body }, res) {
     Thought.create({
       thoughtText: body.thoughtText,
       username: body.username,
-      userId: req.userId,
+      userId: params.userId,
     })
       .then(({ _id }) => {
         return User.findOneAndUpdate(
-          { _id: req.userId },
+          { _id: params.userId },
           { $addToSet: { thoughts: _id } },
           { new: true }
         );
@@ -47,8 +46,8 @@ module.exports = {
       })
       .catch((err) => res.json(err));
   },
-  updateThought(req, res) {
-    Thought.findOneAndUpdate({ _id: req.thoughtId }, body, { new: true })
+  updateThought({ params, body }, res) {
+    Thought.findOneAndUpdate({ _id: params.thoughtId }, body, { new: true })
       .then((user) => {
         if (!user) {
           res.status(404).json({ message: "No user with that ID" });
@@ -58,8 +57,8 @@ module.exports = {
       })
       .catch((err) => res.json(err));
   },
-  deleteThought(req, res) {
-    Thought.findOneAndDelete({ _id: req.thoughtId })
+  deleteThought({ params }, res) {
+    Thought.findOneAndDelete({ _id: params.thoughtId })
       .then((user) => {
         if (!user) {
           res.status(404).json({ message: "No user with that ID" });
@@ -69,9 +68,9 @@ module.exports = {
       })
       .catch((err) => res.json(err));
   },
-  addReaction(req, res) {
+  addReaction({ params, body }, res) {
     Thought.findOneAndUpdate(
-      { _id: req.thoughtId },
+      { _id: params.thoughtId },
       { $addToSet: { reactions: body } },
       { new: true, runValidators: true }
     )
@@ -84,10 +83,10 @@ module.exports = {
       })
       .catch((err) => res.json(err));
   },
-  deleteReaction(req, res) {
+  deleteReaction({ params }, res) {
     Thought.findOneAndUpdate(
-      { _id: req.thoughtId },
-      { $pull: { reactions: { reactionId: req.reactionId } } },
+      { _id: params.thoughtId },
+      { $pull: { reactions: { reactionId: params.reactionId } } },
       { new: true }
     )
       .then((user) => {

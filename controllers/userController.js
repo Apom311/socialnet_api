@@ -3,8 +3,9 @@ const { User, Thought } = require("../models");
 module.exports = {
   getUsers(req, res) {
     User.find({})
-      .populate({ path: "thoughts", select: "-__v" })
-      .populate({ path: "friends", select: "-__v -thoughts" })
+      // .populate({ path: "thoughts", select: "-__v" })
+      // .populate({ path: "friends", select: "-__v -thoughts" })
+      .select("-__v")
       .then((users) => res.json(users))
       .catch((err) => res.status(500).json(err));
   },
@@ -51,10 +52,10 @@ module.exports = {
       .catch((err) => res.status(500).json(err));
   },
 
-  addFriend(req, res) {
+  addFriend({ params }, res) {
     User.findOneAndUpdate(
-      { _id: req.userId },
-      { $addToSet: { friends: req.friendId } },
+      { _id: params.userId },
+      { $addToSet: { friends: params.friendId } },
       { new: true, runValidators: true }
     )
       .then((user) =>
@@ -65,10 +66,10 @@ module.exports = {
       .catch((err) => res.status(500).json(err));
   },
 
-  deleteFriend(req, res) {
+  deleteFriend({ params }, res) {
     User.findOneAndUpdate(
-      { _id: req.userId },
-      { $pull: { friends: req.friendId } },
+      { _id: params.userId },
+      { $pull: { friends: params.friendId } },
       { new: true }
     )
       .then((user) => res.json(user))
